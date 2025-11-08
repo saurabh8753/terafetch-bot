@@ -9,10 +9,53 @@ const BOT_TOKEN = process.env.BOT_TOKEN;
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY;
 const BASE_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
-// 🌐 Your Vercel domain (update after deploy)
-const SITE_URL = "https://your-vercel-domain.vercel.app"; // <-- change this after deploy
+// 🌐 Your deployed domain (update this after deploy)
+const SITE_URL = "https://your-vercel-domain.vercel.app"; // change after deploy
 
-// 📩 Helper: Send message to Telegram user
+// 🌍 Root route for browser
+app.get("/", (req, res) => {
+  res.send(`
+    <html>
+      <head>
+        <title>TeraFetch Bot</title>
+        <style>
+          body {
+            background: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 60px;
+          }
+          a {
+            color: #1e90ff;
+            text-decoration: none;
+            font-weight: bold;
+          }
+          .button {
+            display: inline-block;
+            margin-top: 20px;
+            background: #1e90ff;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: 0.3s;
+          }
+          .button:hover {
+            background: #0b77d0;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>🎬 TeraFetch Bot is Live!</h1>
+        <p>Use Telegram bot <a href="https://t.me/terafetch_bot" target="_blank">@terafetch_bot</a></p>
+        <a href="https://t.me/terafetch_bot" target="_blank" class="button">Open on Telegram</a>
+      </body>
+    </html>
+  `);
+});
+
+// 📩 Helper: Send message
 async function sendMessage(chatId, text, replyMarkup = null) {
   await fetch(`${BASE_URL}/sendMessage`, {
     method: "POST",
@@ -35,22 +78,22 @@ app.post("/", async (req, res) => {
     const chatId = message.chat.id;
     const text = message.text.trim();
 
-    // 🏁 Start command
+    // 🏁 Start Command
     if (text === "/start") {
       await sendMessage(
         chatId,
-        `🎬 <b>Welcome to TeraFetch Bot</b>\n\nSend me any Terabox link to get a playable video link.`
+        `🎬 <b>Welcome to TeraFetch Bot</b>\n\nSend me any <b>Terabox link</b> to get a playable video link.`
       );
       return res.sendStatus(200);
     }
 
-    // ❌ Invalid link
+    // ❌ Invalid Link
     if (!text.includes("terabox.com")) {
       await sendMessage(chatId, "📎 Please send a valid Terabox link!");
       return res.sendStatus(200);
     }
 
-    // 🔄 Fetch Direct Download Link from RapidAPI
+    // 🔄 Fetch Direct Download Link
     const apiUrl = `https://terabox-downloader-direct-download-link-generator1.p.rapidapi.com/url?url=${encodeURIComponent(
       text
     )}`;
@@ -67,7 +110,7 @@ app.post("/", async (req, res) => {
     const data = await response.json();
 
     if (!data || !data.data || !data.data.download_link) {
-      await sendMessage(chatId, "❌ Could not fetch link. Try again later.");
+      await sendMessage(chatId, "❌ Could not fetch download link. Try again later.");
       return res.sendStatus(200);
     }
 
@@ -93,7 +136,7 @@ app.post("/", async (req, res) => {
   }
 });
 
-// 🎬 Player Page (With Adsterra + Telegram Button)
+// 🎬 Video Player Page with Ad + Telegram footer
 app.get("/player", (req, res) => {
   const videoUrl = req.query.url;
   if (!videoUrl) return res.send("Missing video URL.");
@@ -183,5 +226,5 @@ app.get("/player", (req, res) => {
   `);
 });
 
-// ✅ Start server
+// ✅ Start Server
 app.listen(3000, () => console.log("✅ TeraFetch Bot running..."));
